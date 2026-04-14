@@ -1,0 +1,23 @@
+Package: RAMEN
+Title: Dynamic Bipartite Additive and Multiplicative Effects Models
+Version: 0.0.0.9000
+Authors@R: c(person("Jing", "Luo", email = "luo.1405@osu.edu", role = c("aut", "cre")),
+             person("Jared", "Edgerton", email = "jfe4@psu.edu", role = "aut"))
+Description: Implements dynamic additive and multiplicative effects (AME)
+    models for bipartite network data using a temporal alternating least
+    squares (ALS) algorithm. Supports row, column, and dyadic covariates,
+    temporal smoothing of latent factors, and multi-start initialization
+    to reduce sensitivity to local optima in the first period.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    dplyr,
+    tidyr,
+    tibble,
+    stringr,
+    stats
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
