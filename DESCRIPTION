@@ -1,6 +1,6 @@
 Package: RAMEN
 Title: Dynamic Bipartite Additive and Multiplicative Effects Models
-Version: 0.0.0.9000
+Version: 1.1.2
 Authors@R: c(person("Jing", "Luo", email = "luo.1405@osu.edu", role = c("aut", "cre")),
              person("Jared", "Edgerton", email = "jfe4@psu.edu", role = "aut"))
 Description: Implements dynamic additive and multiplicative effects (AME)

@@ -139,8 +139,8 @@ als_factorize_joint_cov <- function(Y,
     V <- init$V
   }
 
-  alpha <- if (!is.null(alpha_prev)) alpha_prev else rowMeans(Y)
-  beta  <- if (!is.null(beta_prev)) beta_prev else colMeans(Y) - mean(Y)
+  alpha <- if (!is.null(alpha_prev)) alpha_prev else rowMeans(Y, na.rm = TRUE)
+  beta  <- if (!is.null(beta_prev)) beta_prev else colMeans(Y, na.rm = TRUE) - mean(Y, na.rm = TRUE)
 
   coef_row <- if (Pr > 0) {
     if (!is.null(coef_row_init)) as.numeric(coef_row_init)
@@ -211,12 +211,78 @@ als_factorize_joint_cov <- function(Y,
     out
   }
 
+  # ── Helper: vectorized gram solve for masked ALS ─────────────────────────────
+  # For U update: solves N independent K×K systems.
+  #   A_i = obs_mat[i,] weighted outer products of V rows  +  ridge * I
+  #   rhs_i = R_filled[i,] %*% V  (+  gamma * U_prev[i,] if smoothing)
+  # Gram elements are computed via BLAS matrix multiplications (no per-row loop
+  # for assembly); only the final K×K solve uses a loop over rows/cols.
+  # Works for any K >= 1.
+  solve_U_masked <- function(R, V, U_prev, ridge_U, gamma_U, gamma, K, N, M) {
+    # Fill NA → 0 for vectorised matrix multiply
+    R_filled <- R
+    R_filled[is.na(R_filled)] <- 0
+    obs_mat <- !is.na(R)                        # N × M logical
+
+    # RHS: N × K  (one BLAS call)
+    RHS_U <- R_filled %*% V
+    if (gamma_U > 0) RHS_U <- RHS_U + gamma * U_prev
+
+    # Gram matrix: assemble N × K × K array using K(K+1)/2 BLAS calls
+    A_arr <- array(0, dim = c(N, K, K))
+    for (k1 in seq_len(K)) {
+      for (k2 in seq_len(k1)) {
+        # obs_mat %*% (V[,k1]*V[,k2]) gives the (k1,k2) element for all N rows
+        vals <- as.vector(obs_mat %*% (V[, k1] * V[, k2]))
+        A_arr[, k1, k2] <- vals
+        A_arr[, k2, k1] <- vals          # symmetric
+      }
+      A_arr[, k1, k1] <- A_arr[, k1, k1] + ridge_U   # add ridge to diagonal
+    }
+
+    # Solve N independent K×K systems (loop only over rows; K×K solve is cheap)
+    U_new <- matrix(0, N, K)
+    for (i in seq_len(N)) {
+      U_new[i, ] <- solve(matrix(A_arr[i, , ], K, K), RHS_U[i, ])
+    }
+    U_new
+  }
+
+  solve_V_masked <- function(R, U, V_prev, ridge_V, gamma_V, gamma, K, N, M) {
+    R_filled <- R
+    R_filled[is.na(R_filled)] <- 0
+    obs_mat_t <- t(!is.na(R))                   # M × N logical (transposed once)
+
+    # RHS: M × K  (one BLAS call)
+    RHS_V <- t(R_filled) %*% U
+    if (gamma_V > 0) RHS_V <- RHS_V + gamma * V_prev
+
+    # Gram matrix: M × K × K
+    A_arr <- array(0, dim = c(M, K, K))
+    for (k1 in seq_len(K)) {
+      for (k2 in seq_len(k1)) {
+        vals <- as.vector(obs_mat_t %*% (U[, k1] * U[, k2]))
+        A_arr[, k1, k2] <- vals
+        A_arr[, k2, k1] <- vals
+      }
+      A_arr[, k1, k1] <- A_arr[, k1, k1] + ridge_V
+    }
+
+    V_new <- matrix(0, M, K)
+    for (j in seq_len(M)) {
+      V_new[j, ] <- solve(matrix(A_arr[j, , ], K, K), RHS_V[j, ])
+    }
+    V_new
+  }
+
+  # ── Main ALS loop ─────────────────────────────────────────────────────────────
   for (iter in seq_len(max_iter)) {
     UVt <- U %*% t(V)
 
+    # ── Covariate coefficients update ──────────────────────────────────────────
     R_cov <- Y -
       matrix(alpha, N, M, byrow = FALSE) -
-      matrix(beta, N, M, byrow = TRUE) -
+      matrix(beta,  N, M, byrow = TRUE) -
       UVt
 
     Z_list <- list()
@@ -227,10 +293,10 @@ als_factorize_joint_cov <- function(Y,
       Z_row <- X_row[rep(seq_len(N), times = M), , drop = FALSE]
       Z_list <- c(Z_list, list(Z_row))
       if (gamma_coef_row > 0) {
-        prior_mean <- c(prior_mean, coef_row_prev)
+        prior_mean   <- c(prior_mean,   coef_row_prev)
         prior_weight <- c(prior_weight, rep(gamma_coef_row, Pr))
       } else {
-        prior_mean <- c(prior_mean, rep(0, Pr))
+        prior_mean   <- c(prior_mean,   rep(0, Pr))
         prior_weight <- c(prior_weight, rep(0, Pr))
       }
     }
@@ -239,10 +305,10 @@ als_factorize_joint_cov <- function(Y,
       Z_col <- X_col[rep(seq_len(M), each = N), , drop = FALSE]
       Z_list <- c(Z_list, list(Z_col))
       if (gamma_coef_col > 0) {
-        prior_mean <- c(prior_mean, coef_col_prev)
+        prior_mean   <- c(prior_mean,   coef_col_prev)
         prior_weight <- c(prior_weight, rep(gamma_coef_col, Pc))
       } else {
-        prior_mean <- c(prior_mean, rep(0, Pc))
+        prior_mean   <- c(prior_mean,   rep(0, Pc))
         prior_weight <- c(prior_weight, rep(0, Pc))
       }
     }
@@ -252,20 +318,21 @@ als_factorize_joint_cov <- function(Y,
       if (Pd == 1) Z_dyad <- matrix(Z_dyad, ncol = 1)
       Z_list <- c(Z_list, list(Z_dyad))
       if (gamma_coef_dyad > 0) {
-        prior_mean <- c(prior_mean, coef_dyad_prev)
+        prior_mean   <- c(prior_mean,   coef_dyad_prev)
         prior_weight <- c(prior_weight, rep(gamma_coef_dyad, Pd))
       } else {
-        prior_mean <- c(prior_mean, rep(0, Pd))
+        prior_mean   <- c(prior_mean,   rep(0, Pd))
         prior_weight <- c(prior_weight, rep(0, Pd))
       }
     }
 
     if (length(Z_list) > 0) {
       Z <- do.call(cbind, Z_list)
-      y_vec <- as.vector(R_cov)
 
-      XtX <- crossprod(Z)
-      Xty <- crossprod(Z, y_vec)
+      y_vec    <- as.vector(R_cov)
+      obs_mask <- !is.na(y_vec)
+      XtX <- crossprod(Z[obs_mask, , drop = FALSE])
+      Xty <- crossprod(Z[obs_mask, , drop = FALSE], y_vec[obs_mask])
 
       if (any(prior_weight > 0)) {
         XtX <- XtX + diag(prior_weight, nrow = length(prior_weight))
@@ -275,61 +342,66 @@ als_factorize_joint_cov <- function(Y,
       coef_all <- qr.solve(XtX, Xty)
 
       idx <- 1
-      if (Pr > 0) {
-        coef_row <- coef_all[idx:(idx + Pr - 1)]
-        idx <- idx + Pr
-      }
-      if (Pc > 0) {
-        coef_col <- coef_all[idx:(idx + Pc - 1)]
-        idx <- idx + Pc
-      }
-      if (Pd > 0) {
-        coef_dyad <- coef_all[idx:(idx + Pd - 1)]
-      }
+      if (Pr > 0) { coef_row  <- coef_all[idx:(idx + Pr - 1)]; idx <- idx + Pr }
+      if (Pc > 0) { coef_col  <- coef_all[idx:(idx + Pc - 1)]; idx <- idx + Pc }
+      if (Pd > 0) { coef_dyad <- coef_all[idx:(idx + Pd - 1)] }
     }
 
     cov_term <- build_cov_term()
 
-    alpha_num <- rowSums(Y - cov_term - matrix(beta, N, M, byrow = TRUE) - UVt)
+    # ── Alpha update (masked) ───────────────────────────────────────────────────
+    R_alpha     <- Y - cov_term - matrix(beta, N, M, byrow = TRUE) - UVt
+    obs_per_row <- rowSums(!is.na(R_alpha))
+    alpha_num   <- rowSums(R_alpha, na.rm = TRUE)
     if (gamma_alpha > 0) alpha_num <- alpha_num + gamma * alpha_prev
-    alpha <- alpha_num / (M + gamma_alpha)
+    alpha <- alpha_num / (obs_per_row + gamma_alpha)
 
-    beta_num <- colSums(Y - cov_term - matrix(alpha, N, M, byrow = FALSE) - UVt)
+    # ── Beta update (masked) ────────────────────────────────────────────────────
+    R_beta      <- Y - cov_term - matrix(alpha, N, M, byrow = FALSE) - UVt
+    obs_per_col <- colSums(!is.na(R_beta))
+    beta_num    <- colSums(R_beta, na.rm = TRUE)
     if (gamma_beta > 0) beta_num <- beta_num + gamma * beta_prev
-    beta <- beta_num / (N + gamma_beta)
+    beta <- beta_num / (obs_per_col + gamma_beta)
 
+    # ── Residual after fixed effects ────────────────────────────────────────────
     R <- Y - cov_term -
       matrix(alpha, N, M, byrow = FALSE) -
-      matrix(beta, N, M, byrow = TRUE)
+      matrix(beta,  N, M, byrow = TRUE)
 
-    A_U <- crossprod(V) + (lambda + gamma_U) * diag(K)
-    rhs_U <- R %*% V
-    if (gamma_U > 0) rhs_U <- rhs_U + gamma * U_prev
-    U <- rhs_U %*% solve(A_U)
+    # ── U update (vectorised gram assembly, any K) ──────────────────────────────
+    # Replaces the original per-row for-loop with:
+    #   - K(K+1)/2 BLAS matrix multiplications to assemble all N gram matrices
+    #   - N cheap K×K solves (K is small, so this loop is negligible)
+    U_new <- solve_U_masked(R, V, U_prev, lambda + gamma_U, gamma_U, gamma, K, N, M)
+    rownames(U_new) <- row_ids
+    colnames(U_new) <- latent_ids
+    U <- U_new
 
-    A_V <- crossprod(U) + (lambda + gamma_V) * diag(K)
-    rhs_V <- t(R) %*% U
-    if (gamma_V > 0) rhs_V <- rhs_V + gamma * V_prev
-    V <- rhs_V %*% solve(A_V)
+    # ── V update (vectorised gram assembly, any K) ──────────────────────────────
+    V_new <- solve_V_masked(R, U, V_prev, lambda + gamma_V, gamma_V, gamma, K, N, M)
+    rownames(V_new) <- col_ids
+    colnames(V_new) <- latent_ids
+    V <- V_new
 
-    UVt <- U %*% t(V)
+    # ── Objective ───────────────────────────────────────────────────────────────
+    UVt      <- U %*% t(V)
     cov_term <- build_cov_term()
 
     resid <- Y - cov_term -
       matrix(alpha, N, M, byrow = FALSE) -
-      matrix(beta, N, M, byrow = TRUE) -
+      matrix(beta,  N, M, byrow = TRUE) -
       UVt
 
-    fit_term <- sum(resid^2)
+    fit_term   <- sum(resid^2, na.rm = TRUE)
     ridge_term <- lambda * (sum(U^2) + sum(V^2))
 
     temporal_term <- 0
-    if (gamma_U > 0) temporal_term <- temporal_term + gamma * sum((U - U_prev)^2)
-    if (gamma_V > 0) temporal_term <- temporal_term + gamma * sum((V - V_prev)^2)
-    if (gamma_alpha > 0) temporal_term <- temporal_term + gamma * sum((alpha - alpha_prev)^2)
-    if (gamma_beta > 0) temporal_term <- temporal_term + gamma * sum((beta - beta_prev)^2)
-    if (gamma_coef_row > 0) temporal_term <- temporal_term + gamma_coef_row * sum((coef_row - coef_row_prev)^2)
-    if (gamma_coef_col > 0) temporal_term <- temporal_term + gamma_coef_col * sum((coef_col - coef_col_prev)^2)
+    if (gamma_U > 0)         temporal_term <- temporal_term + gamma        * sum((U        - U_prev)^2)
+    if (gamma_V > 0)         temporal_term <- temporal_term + gamma        * sum((V        - V_prev)^2)
+    if (gamma_alpha > 0)     temporal_term <- temporal_term + gamma        * sum((alpha    - alpha_prev)^2)
+    if (gamma_beta > 0)      temporal_term <- temporal_term + gamma        * sum((beta     - beta_prev)^2)
+    if (gamma_coef_row > 0)  temporal_term <- temporal_term + gamma_coef_row  * sum((coef_row  - coef_row_prev)^2)
+    if (gamma_coef_col > 0)  temporal_term <- temporal_term + gamma_coef_col  * sum((coef_col  - coef_col_prev)^2)
     if (gamma_coef_dyad > 0) temporal_term <- temporal_term + gamma_coef_dyad * sum((coef_dyad - coef_dyad_prev)^2)
 
     obj <- fit_term + ridge_term + temporal_term
@@ -346,18 +418,17 @@ als_factorize_joint_cov <- function(Y,
   colnames(U) <- latent_ids
   colnames(V) <- latent_ids
   names(alpha) <- row_ids
-  names(beta) <- col_ids
+  names(beta)  <- col_ids
 
   list(
-    U = U,
-    V = V,
-    alpha = alpha,
-    beta = beta,
-    coef_row = coef_row,
-    coef_col = coef_col,
-    coef_dyad = coef_dyad,
-    objective = obj,
+    U          = U,
+    V          = V,
+    alpha      = alpha,
+    beta       = beta,
+    coef_row   = coef_row,
+    coef_col   = coef_col,
+    coef_dyad  = coef_dyad,
+    objective  = obj,
     iterations = iter
   )
 }
-

@@ -90,7 +90,7 @@ build_panel_matrices <- function(edge_panel,
         node_row = factor(.data$node_row, levels = row_nodes_all),
         node_col = factor(.data$node_col, levels = col_nodes_all)
       ) |>
-      tidyr::complete(.data$node_row, .data$node_col, fill = list(value = 0)) |>
+      tidyr::complete(.data$node_row, .data$node_col, fill = list(value = NA)) |>
       tidyr::pivot_wider(names_from = .data$node_col, values_from = .data$value) |>
       tibble::column_to_rownames("node_row") |>
       as.matrix()
