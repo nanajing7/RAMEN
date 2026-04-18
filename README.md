@@ -16,7 +16,9 @@ Typical applications include:
 - district–industry employment panels
 - other bipartite relational panel data
 
-**I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.**
+### Acknowledgements
+
+I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.
 
 ---
 
