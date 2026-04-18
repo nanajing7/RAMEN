@@ -25,3 +25,10 @@ Currently the package can be installed from GitHub:
 ```r
 # install.packages("remotes")
 remotes::install_github("nanajing7/RAMEN")
+```
+
+---
+
+# Acknowledgements
+
+I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.
