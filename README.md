@@ -11,9 +11,8 @@ The package is designed for bipartite panel data where relationships between two
 
 Typical applications include:
 
-- supply chain networks
-- trade networks
-- district–industry employment panels
+- country–industry trade
+- legislator–bill co-sponsorship
 - other bipartite relational panel data
 
 ### Paper replication
