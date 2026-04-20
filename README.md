@@ -16,6 +16,10 @@ Typical applications include:
 - district–industry employment panels
 - other bipartite relational panel data
 
+### Paper replication
+
+The `paper_example_simulation/` folder contains the simulation scripts used to reproduce the results reported in the accompanying paper.
+
 ### Acknowledgements
 
 I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.
