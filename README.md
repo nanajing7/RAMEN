@@ -6,6 +6,7 @@
 - nodal heterogeneity and higher-order dependence
 - temporal smoothing of coefficients, effects, and latent factors
 - penalized ALS estimation in place of MCMC
+- multi-start initialization for robustness to local optima
 
 Typical applications include:
 
