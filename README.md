@@ -1,8 +1,11 @@
 # RAMEN
 
-**RAMEN** implements dynamic bipartite additive and multiplicative effects (AME) models using a temporal alternating least squares (ALS) algorithm for bipartite panel data.
+**RAMEN** implements dynamic bipartite additive and multiplicative effects (AME) models using a temporal alternating least squares (ALS) algorithm. The package is designed for bipartite panel data where relationships between two sets of nodes evolve over time. It supports:
 
-It supports node- and dyad-level covariates, captures nodal heterogeneity and higher-order dependence, incorporates temporal smoothing of coefficients, effects, and latent factors, and uses penalized ALS estimation as a scalable alternative to MCMC.
+- node- and dyad-level covariates
+- nodal heterogeneity and higher-order dependence
+- temporal smoothing of coefficients, effects, and latent factors
+- penalized ALS estimation in place of MCMC
 
 Typical applications include:
 
