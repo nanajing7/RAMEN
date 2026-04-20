@@ -13,10 +13,6 @@ Typical applications include:
 - legislator–bill co-sponsorship
 - other bipartite relational panel data
 
-### Paper replication
-
-The `paper_example_simulation/` folder contains the simulation scripts used to reproduce the results reported in the accompanying paper.
-
 ### Acknowledgements
 
 I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.
@@ -31,3 +27,7 @@ Currently the package can be installed from GitHub:
 # install.packages("remotes")
 remotes::install_github("nanajing7/RAMEN")
 ```
+
+### Paper replication
+
+The `paper_example_simulation/` folder contains the simulation scripts used to reproduce the results reported in the accompanying paper.
