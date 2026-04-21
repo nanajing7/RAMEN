@@ -56,8 +56,8 @@ sd_U_innov     <- 0.30
 sd_V_innov     <- 0.30
 
 # cross-dyad dependence strength
-rho_row <- 0.25
-rho_col <- 0.25
+rho_row <- 0.3
+rho_col <- 0.5
 
 # year effects
 delta_true <- c(-0.20, -0.05, 0.00, 0.10, 0.20)
@@ -661,6 +661,7 @@ cat(sprintf("\nResults saved to:\n  %s\n", save_path))
 
 
 
+
 # ------------------------------------------------------------
 # 6. Visualization
 # ------------------------------------------------------------
@@ -696,20 +697,20 @@ library(ggplot2)
 pd <- position_dodge(width = 0.45)
 
 ggplot() +
-  geom_vline(xintercept = 0, linetype = "dashed", linewidth = 0.6, color = "grey55") +
+  geom_vline(xintercept = 0, linetype = "dashed", linewidth = 1, color = "grey55") +
 
   # confidence intervals
   geom_errorbarh( data = plot_df,
-    aes( y = term, x = mean_est, xmin = ci_lo, xmax = ci_hi, color = method, group = method),
-        height = 0.12, linewidth = 0.8, position = pd ) +
+                  aes( y = term, x = mean_est, xmin = ci_lo, xmax = ci_hi, color = method, group = method),
+                  height = 0.12, linewidth = 1.5, position = pd ) +
   # estimated points
   geom_point( data = plot_df,
-    aes(y = term, x = mean_est, color = method, shape = method, group = method),
-       size = 3.2, position = pd ) +
+              aes(y = term, x = mean_est, color = method, shape = method, group = method),
+              size = 3.2, position = pd ) +
   # truth points
   geom_point( data = truth_df,
-    aes(y = term, x = truth, color = method, shape = method),
-    size = 3.4) +
+              aes(y = term, x = truth, color = method, shape = method),
+              size = 3.4) +
   scale_color_manual(
     values = c(
       "OLS" = "#2C6BAA",
@@ -748,3 +749,4 @@ ggplot() +
     plot.title = element_text(size = 18, face = "bold"),
     axis.ticks = element_blank(),
     panel.border = element_blank())
+
