@@ -1,4 +1,4 @@
-# RAMEN: Bipartite and Dynamic Additive and Multiplicative Effects Network Model in R
+# RAMEN: Bipartite Dynamic Additive and Multiplicative Effects Network Model in R
 
 **RAMEN** implements dynamic bipartite additive and multiplicative effects (AME) models using a temporal alternating least squares (ALS) algorithm. It is designed for bipartite panel data in which relationships between two sets of nodes evolve over time. It supports:
 
