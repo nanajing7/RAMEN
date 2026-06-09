@@ -61,13 +61,18 @@
 #'   \code{seed + tt - 1} so results are reproducible yet vary across periods.
 #' @param verbose Logical; print progress messages.
 #'
-#' @return A list with components:
+#' @return An object of class \code{"bootstrap_temporal_bipartite_als"}, a list
+#'   with components:
 #' \describe{
 #'   \item{\code{period_results}}{Named list (one entry per period) of
 #'     \code{bootstrap_als_factorize_joint_cov} objects.}
 #'   \item{\code{coef_df}}{Long data frame with columns
 #'     \code{period}, \code{term}, \code{estimate}, \code{std.error},
 #'     \code{conf.low}, \code{conf.high} — stacked across all periods.}
+#'   \item{\code{latent_df}}{Long data frame with columns
+#'     \code{period}, \code{row_id}, \code{col_id}, \code{mean}, \code{sd},
+#'     \code{conf.low}, \code{conf.high}, \code{sign.prob} — stacked across
+#'     all periods.}
 #'   \item{\code{success_df}}{Data frame reporting \code{B_requested} and
 #'     \code{B_successful} for each period.}
 #'   \item{\code{params}}{List of all hyperparameters used.}
@@ -259,7 +264,34 @@ bootstrap_temporal_bipartite_als <- function(
     })
   )
 
-  # ── 5. Success rate table ────────────────────────────────────────────────────
+  # ── 5. Stack latent summaries across all periods (long format) ──────────────
+  latent_df <- dplyr::bind_rows(
+    lapply(names(period_results), function(yr) {
+      ls <- period_results[[yr]]$latent_summary
+      if (is.null(ls) || is.null(ls$mean)) return(NULL)
+
+      mean_mat <- ls$mean
+      rn <- rownames(mean_mat)
+      cn <- colnames(mean_mat)
+      if (is.null(rn)) rn <- as.character(seq_len(nrow(mean_mat)))
+      if (is.null(cn)) cn <- as.character(seq_len(ncol(mean_mat)))
+
+      data.frame(
+        period    = yr,
+        row_id    = rep(rn, times = ncol(mean_mat)),
+        col_id    = rep(cn, each = nrow(mean_mat)),
+        mean      = as.vector(ls$mean),
+        sd        = as.vector(ls$sd),
+        conf.low  = as.vector(ls$conf.low),
+        conf.high = as.vector(ls$conf.high),
+        sign.prob = as.vector(ls$sign.prob),
+        row.names = NULL,
+        stringsAsFactors = FALSE
+      )
+    })
+  )
+
+  # ── 6. Success rate table ────────────────────────────────────────────────────
   success_df <- data.frame(
     period      = as.character(panel$years),
     B_requested = sapply(period_results, function(x) x$B_requested),
@@ -267,9 +299,10 @@ bootstrap_temporal_bipartite_als <- function(
     row.names   = NULL
   )
 
-  list(
+  out <- list(
     period_results = period_results,
     coef_df        = coef_df,
+    latent_df      = latent_df,
     success_df     = success_df,
     params = list(
       K                     = K,
@@ -285,4 +318,7 @@ bootstrap_temporal_bipartite_als <- function(
       dyad_covar_names      = dyad_covar_names
     )
   )
+
+  class(out) <- "bootstrap_temporal_bipartite_als"
+  out
 }
