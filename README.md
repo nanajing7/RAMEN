@@ -6,7 +6,7 @@ I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidanc
 
 ---
 
-**RAMEN** fits dynamic additive and multiplicative effects (AME) models to bipartite panel data, where relationships between two sets of nodes evolve over time.
+**RAMEN** implements additive and multiplicative effects (AME) models for longitudinal bipartite relational data.
 
 The model is
 
