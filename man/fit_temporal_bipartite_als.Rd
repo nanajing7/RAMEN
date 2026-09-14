@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_temporal_bipartite_als.R
 \name{fit_temporal_bipartite_als}
 \alias{fit_temporal_bipartite_als}
-\title{Fit temporal ALS for one weighted bipartite panel}
+\title{Fit temporal ALS for one weighted bipartite panel (deprecated)}
 \usage{
 fit_temporal_bipartite_als(
   edge_panel,
@@ -20,7 +20,7 @@ fit_temporal_bipartite_als(
   col_prefix = "col_",
   row_pad = NULL,
   col_pad = NULL,
-  transform = log1p,
+  transform = identity,
   row_cov_time_col = time_col,
   row_cov_id_col = row_col,
   row_cov_prefix = row_prefix,
@@ -131,6 +131,15 @@ but applied to column-node covariates.}
 A list of period-specific results plus stacked node and coefficient data.
 }
 \description{
-This function is package-ready and does not assume file paths or
-project-specific object names.
+\strong{Deprecated.} Use \code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}} instead.
+}
+\details{
+Estimates the model one period at a time, sweeping forward: period \code{t} is fit
+with period \code{t-1} held fixed and entering as a penalty target. The
+hyperparameters \code{lambda} and \code{gamma} are supplied by the user and never
+updated. It is retained so existing analyses keep running.
+}
+\seealso{
+\code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}}, which estimates all periods jointly and
+estimates the variance components rather than taking them as given.
 }

@@ -1,8 +1,12 @@
 
-#' Multi-start fit for the first period only
+#' Multi-start fit for the first period only (deprecated)
 #'
-#' Uses one SVD start plus random perturbation starts and keeps the
-#' solution with the lowest objective.
+#' **Deprecated.** Uses one SVD start plus random perturbation starts and keeps
+#' the solution with the lowest objective, but only for the first period, since
+#' the deprecated forward-sweep estimator initialises each later period from its
+#' predecessor. [fit_dynamic_ame()] perturbs and compares whole trajectories.
+#'
+#' @seealso [fit_dynamic_ame()]
 #'
 #' @param Y Outcome matrix.
 #' @param K Latent dimension.

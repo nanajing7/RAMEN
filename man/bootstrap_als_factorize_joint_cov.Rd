@@ -2,7 +2,7 @@
 % Please edit documentation in R/bootstrap.R
 \name{bootstrap_als_factorize_joint_cov}
 \alias{bootstrap_als_factorize_joint_cov}
-\title{Bootstrap inference for als_factorize_joint_cov}
+\title{Bootstrap inference for als_factorize_joint_cov (deprecated)}
 \usage{
 bootstrap_als_factorize_joint_cov(
   Y,
@@ -82,5 +82,10 @@ bootstrap_als_factorize_joint_cov(
 A list containing the original fit, bootstrap draws, and summaries.
 }
 \description{
-Bootstrap inference for als_factorize_joint_cov
+\strong{Deprecated.} Resamples a single period, so it cannot express uncertainty
+in a whole trajectory. A joint-trajectory bootstrap for \code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}}
+is not implemented yet.
+}
+\seealso{
+\code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}}
 }

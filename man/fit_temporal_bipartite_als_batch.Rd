@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_temporal_bipartite_als_batch.R
 \name{fit_temporal_bipartite_als_batch}
 \alias{fit_temporal_bipartite_als_batch}
-\title{Fit temporal ALS across a batch of weighted bipartite panels}
+\title{Fit temporal ALS across a batch of weighted bipartite panels (deprecated)}
 \usage{
 fit_temporal_bipartite_als_batch(
   panel_list,
@@ -20,7 +20,7 @@ fit_temporal_bipartite_als_batch(
   col_prefix = "col_",
   row_pad = NULL,
   col_pad = NULL,
-  transform = log1p,
+  transform = identity,
   row_cov_time_col = time_col,
   row_cov_id_col = row_col,
   row_cov_prefix = row_prefix,
@@ -117,5 +117,9 @@ fit_temporal_bipartite_als_batch(
 A list of fitted panel objects.
 }
 \description{
-Fit temporal ALS across a batch of weighted bipartite panels
+\strong{Deprecated.} Wraps the deprecated \code{\link[=fit_temporal_bipartite_als]{fit_temporal_bipartite_als()}}; use
+\code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}} on each panel instead.
+}
+\seealso{
+\code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}}
 }

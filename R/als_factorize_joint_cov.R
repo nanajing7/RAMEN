@@ -1,5 +1,12 @@
 
-#' Fit one-period ALS with row/column/dyad covariates and temporal smoothing
+#' Fit one-period ALS with row/column/dyad covariates and temporal smoothing (deprecated)
+#'
+#' **Deprecated.** This is the single-period engine behind
+#' [fit_temporal_bipartite_als()]. The joint-trajectory estimator
+#' [fit_dynamic_ame()] has no per-period engine: each parameter trajectory is
+#' solved across all periods at once.
+#'
+#' @seealso [fit_dynamic_ame()]
 #'
 #' Model:
 #'   Y_ij = alpha_i + beta_j + X_row_i * coef_row + X_col_j * coef_col

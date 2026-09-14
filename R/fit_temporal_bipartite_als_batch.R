@@ -1,5 +1,10 @@
 
-#' Fit temporal ALS across a batch of weighted bipartite panels
+#' Fit temporal ALS across a batch of weighted bipartite panels (deprecated)
+#'
+#' **Deprecated.** Wraps the deprecated [fit_temporal_bipartite_als()]; use
+#' [fit_dynamic_ame()] on each panel instead.
+#'
+#' @seealso [fit_dynamic_ame()]
 #'
 #' @param panel_list A named or unnamed list of edge-panel data frames.
 #' @param row_cov_list Optional list of row covariate data frames.
@@ -54,7 +59,7 @@ fit_temporal_bipartite_als_batch <- function(panel_list,
                                              col_prefix = "col_",
                                              row_pad = NULL,
                                              col_pad = NULL,
-                                             transform = identity(),
+                                             transform = identity,
                                              row_cov_time_col = time_col,
                                              row_cov_id_col = row_col,
                                              row_cov_prefix = row_prefix,

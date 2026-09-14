@@ -2,7 +2,7 @@
 % Please edit documentation in R/als_factorize_joint_cov.R
 \name{als_factorize_joint_cov}
 \alias{als_factorize_joint_cov}
-\title{Fit one-period ALS with row/column/dyad covariates and temporal smoothing}
+\title{Fit one-period ALS with row/column/dyad covariates and temporal smoothing (deprecated)}
 \usage{
 als_factorize_joint_cov(
   Y,
@@ -61,6 +61,14 @@ als_factorize_joint_cov(
 A list containing parameter estimates and diagnostics.
 }
 \description{
+\strong{Deprecated.} This is the single-period engine behind
+\code{\link[=fit_temporal_bipartite_als]{fit_temporal_bipartite_als()}}. The joint-trajectory estimator
+\code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}} has no per-period engine: each parameter trajectory is
+solved across all periods at once.
+}
+\seealso{
+\code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}}
+
 Model:
 Y_ij = alpha_i + beta_j + X_row_i * coef_row + X_col_j * coef_col
 + X_dyad_ij * coef_dyad + U_i'V_j + error

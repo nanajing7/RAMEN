@@ -1,5 +1,11 @@
 
-#' Bootstrap inference for a fitted temporal bipartite ALS panel
+#' Bootstrap inference for a fitted temporal bipartite ALS panel (deprecated)
+#'
+#' **Deprecated.** Operates on the per-period fit objects produced by the
+#' deprecated [fit_temporal_bipartite_als()]. A joint-trajectory bootstrap for
+#' [fit_dynamic_ame()] is not implemented yet.
+#'
+#' @seealso [fit_dynamic_ame()]
 #'
 #' Runs \code{bootstrap_als_factorize_joint_cov} for every period in the
 #' panel, automatically threading the previous-period anchors

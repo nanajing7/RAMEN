@@ -201,7 +201,13 @@ summarize_bootstrap_latent_als <- function(
 }
 
 
-#' Bootstrap inference for als_factorize_joint_cov
+#' Bootstrap inference for als_factorize_joint_cov (deprecated)
+#'
+#' **Deprecated.** Resamples a single period, so it cannot express uncertainty
+#' in a whole trajectory. A joint-trajectory bootstrap for [fit_dynamic_ame()]
+#' is not implemented yet.
+#'
+#' @seealso [fit_dynamic_ame()]
 #'
 #' @param Y Outcome matrix.
 #' @param B Number of bootstrap replications.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_first_year_multistart.R
 \name{fit_first_period_multistart}
 \alias{fit_first_period_multistart}
-\title{Multi-start fit for the first period only}
+\title{Multi-start fit for the first period only (deprecated)}
 \usage{
 fit_first_period_multistart(
   Y,
@@ -41,6 +41,11 @@ fit_first_period_multistart(
 Best fit object.
 }
 \description{
-Uses one SVD start plus random perturbation starts and keeps the
-solution with the lowest objective.
+\strong{Deprecated.} Uses one SVD start plus random perturbation starts and keeps
+the solution with the lowest objective, but only for the first period, since
+the deprecated forward-sweep estimator initialises each later period from its
+predecessor. \code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}} perturbs and compares whole trajectories.
+}
+\seealso{
+\code{\link[=fit_dynamic_ame]{fit_dynamic_ame()}}
 }

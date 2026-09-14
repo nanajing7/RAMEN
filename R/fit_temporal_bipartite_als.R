@@ -1,7 +1,14 @@
-#' Fit temporal ALS for one weighted bipartite panel
+#' Fit temporal ALS for one weighted bipartite panel (deprecated)
 #'
-#' This function is package-ready and does not assume file paths or
-#' project-specific object names.
+#' **Deprecated.** Use [fit_dynamic_ame()] instead.
+#'
+#' Estimates the model one period at a time, sweeping forward: period `t` is fit
+#' with period `t-1` held fixed and entering as a penalty target. The
+#' hyperparameters `lambda` and `gamma` are supplied by the user and never
+#' updated. It is retained so existing analyses keep running.
+#'
+#' @seealso [fit_dynamic_ame()], which estimates all periods jointly and
+#'   estimates the variance components rather than taking them as given.
 #'
 #' @param edge_panel Main edge-panel data frame.
 #' @param row_cov_df Optional row covariate data frame.
