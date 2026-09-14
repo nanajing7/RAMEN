@@ -1,6 +1,6 @@
 # RAMEN: Bipartite Dynamic Additive and Multiplicative Effects Network Model in R
 
-## Acknowledgements
+#### Acknowledgements
 
 I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.
 
