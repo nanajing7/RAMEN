@@ -1,5 +1,11 @@
 # RAMEN: Bipartite Dynamic Additive and Multiplicative Effects Network Model in R
 
+## Acknowledgements
+
+I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.
+
+---
+
 **RAMEN** fits dynamic additive and multiplicative effects (AME) models to bipartite panel data, where relationships between two sets of nodes evolve over time.
 
 The model is
@@ -95,7 +101,3 @@ The `paper_example_simulation/` folder contains the simulation scripts used to r
 ## Deprecated
 
 The earlier period-by-period alternating least squares functions — `fit_temporal_bipartite_als()`, `fit_temporal_bipartite_als_batch()`, `als_factorize_joint_cov()`, `fit_first_period_multistart()`, and the two bootstrap functions built on them — still run, and existing scripts are unaffected. They fit each period in a forward sweep with the previous period held fixed, and take the penalties as user-supplied constants. Use `fit_dynamic_ame()` for new work.
-
-## Acknowledgements
-
-I thank Prof. Jared Edgerton and Prof. Ryan Kennedy for their invaluable guidance and support in the development of this package.
