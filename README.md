@@ -52,11 +52,11 @@ Missing dyads are supported throughout: unobserved cells, and cells whose covari
 
 ## Inference
 
-`bootstrap_ame()` runs two parametric bootstrap designs, which answer different questions. Both run by default and are returned together.
+`bootstrap_ame()` offers two parametric bootstrap designs, which answer different questions. The conditional design is the default, because it is the one that yields standard errors and confidence intervals.
 
 ```r
-bt <- bootstrap_ame(fit, B = 1000, B_full = 500, n_cores = 4)
-bt                     # both designs side by side
+bt <- bootstrap_ame(fit, B = 1000, n_cores = 4)                    # conditional only
+bt <- bootstrap_ame(fit, design = "both", B = 1000, B_full = 500)  # both, side by side
 ```
 
 **Conditional design — how precise are these estimates?** Holds the fitted systematic component fixed and regenerates only the observation errors, so every replicate carries exactly the dependence structure the model estimated. Gives standard errors and percentile confidence intervals for the parameters of the observed network.
@@ -73,13 +73,45 @@ bt$full$accuracy$Omega     # mean error and RMSE against the generating values
 bt$full$latent_recovery    # Frobenius distance and correlation, by period
 ```
 
-Either can be run alone with `design = "conditional"` or `design = "full"`.
+Run the full-model design alone with `design = "full"`, or both with `design = "both"`. The `bt$full` accessors above require one of these; under the default, `bt$full` is `NULL`.
 
 Replications are independent and parallelise cleanly. Each is given its own seed up front, so results do not depend on the number of workers or on scheduling.
 
 ### What is identified
 
 `U_t V_t'` is identified; the individual factors are not, beyond the gauge the fit fixes. Interpret rotation-invariant quantities — the fitted multiplicative component, the fitted values, the coefficient trajectories. For the same reason `sigma_U2`, `sigma_V2`, `tau_U2`, and `tau_V2` are reported in the full-model bootstrap only through their gauge-invariant products.
+
+---
+
+## Goodness of fit
+
+`gof_dynamic_ame()` describes how well one fitted model reproduces the panel it was estimated from. It refits nothing, so it runs in seconds.
+
+```r
+gof <- gof_dynamic_ame(fit, nsim = 1000)
+gof                                   # warnings first, then summaries
+
+gof_plot_ame(gof, "replication")      # scale, row and column heterogeneity, adjacent-period similarity
+gof_plot_ame(gof, "latent")           # pair structure against an additive reference
+gof_plot_ame(gof, "decomposition")    # each block's share of the outcome variance
+gof_plot_ame(gof, "residual")         # normal quantile plot of the residuals
+```
+
+- **Replication checks** simulate panels from the fitted structure with fresh observation errors and compare network statistics against them. The resulting intervals are descriptive references and have no nominal coverage: an observed value inside is compatible with the fitted structure, one outside marks a discrepancy worth inspecting.
+- **The additive reference** keeps the fitted covariate and additive terms and replaces the remaining dyad-level variation with noise of the same mean and variance. Observed profile-correlation spread well above it indicates cross-dyad structure that additive effects cannot produce.
+- **Estimator diagnostics** report convergence, penalties held at their ceiling, and the residual variance floor; **residual screening** looks for leftover row, column, temporal, or distributional structure.
+
+Figures can be restyled from outside. Panel titles take `labels`, drawing parameters take `gof_style()`, and type sizes take `theme()` as usual:
+
+```r
+gof_plot_ame(gof, "replication",
+             labels = c(sd.rowmean = "Country heterogeneity"),
+             style  = gof_style(linewidth = 1.4, point_size = 3,
+                                colours = c(observed = "black"))) +
+  ggplot2::theme(strip.text = ggplot2::element_text(size = 16))
+```
+
+The model is Gaussian, so statistics defined on binary networks, such as degree distributions and four-cycle counts, are not checked.
 
 ---
 
@@ -93,10 +125,6 @@ remotes::install_github("nanajing7/RAMEN")
 ## Demo
 
 `demo/demo_dynamic_ame.R` simulates a small panel, fits it, and shows the accessors and both bootstrap designs. It runs in well under a minute.
-
-## Paper replication
-
-The `paper_example_simulation/` folder contains the simulation scripts used to reproduce the results reported in the accompanying paper.
 
 ## Deprecated
 
